@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f6f5f0">
+  <title>JPEG / LAB — фоторедактор</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: #f6f5f0;
+      --panel: #fffefa;
+      --ink: #20231f;
+      --muted: #85877f;
+      --line: #e8e7e0;
+      --accent: #d64c32;
+      --accent-dark: #a93622;
+      --lime: #d7ed68;
+      --stage: #292b28;
+      font-family: "DM Sans", sans-serif;
+      font-synthesis: none;
+      text-rendering: optimizeLegibility;
+      -webkit-font-smoothing: antialiased;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-width: 320px; min-height: 100vh; background: var(--paper); color: var(--ink); }
+    button, input { font: inherit; }
+    button { color: inherit; }
+    .topbar { height: 68px; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; background: var(--panel); border-bottom: 1px solid var(--line); }
+    .brand { display: flex; align-items: center; gap: 12px; font: 800 15px "Manrope", sans-serif; letter-spacing: .02em; }
+    .brand-mark { width: 29px; height: 29px; display: grid; place-items: center; background: var(--lime); border-radius: 9px; font-size: 17px; }
+    .brand span:last-child { color: var(--muted); font-weight: 500; }
+    .top-actions { display: flex; align-items: center; gap: 10px; }
+    .quiet-button, .save-button, .upload-button { min-height: 38px; border: 0; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; transition: background .16s, transform .16s; }
+    .quiet-button { padding: 0 13px; background: transparent; }
+    .quiet-button:hover { background: var(--paper); }
+    .save-button { padding: 0 16px; color: white; background: var(--accent); }
+    .save-button:hover { background: var(--accent-dark); }
+    button:active { transform: translateY(1px); }
+    button:focus-visible, input:focus-visible { outline: 2px solid #458d74; outline-offset: 3px; }
+    .workspace { min-height: calc(100vh - 68px); display: grid; grid-template-columns: minmax(0, 1fr) 350px; }
+    .main { min-width: 0; padding: 24px 28px 26px; display: flex; flex-direction: column; }
+    .toolbar { min-height: 38px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .file-info { display: flex; align-items: center; gap: 9px; min-width: 0; }
+    .file-dot { width: 8px; height: 8px; flex: 0 0 auto; border-radius: 50%; background: var(--accent); }
+    .file-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; font-weight: 600; }
+    .file-meta { color: var(--muted); font-size: 12px; }
+    .toolbar-actions { display: flex; gap: 5px; }
+    .icon-button { min-height: 34px; padding: 0 10px; border: 1px solid var(--line); border-radius: 5px; background: var(--panel); cursor: pointer; font-size: 12px; font-weight: 600; }
+    .icon-button:hover { border-color: #c6c7bd; }
+    .stage { position: relative; min-height: 380px; flex: 1; display: grid; place-items: center; overflow: hidden; border: 1px solid #3b3e39; border-radius: 6px; background-color: var(--stage); background-image: radial-gradient(#ffffff0c .7px, transparent .7px); background-size: 10px 10px; }
+    .stage.dragging { outline: 2px solid var(--lime); outline-offset: -5px; }
+    #preview { display: none; width: auto; height: auto; max-width: 100%; max-height: 100%; object-fit: contain; }
+    .empty-state { width: min(430px, calc(100% - 36px)); padding: 34px 24px 30px; text-align: center; color: #f5f4ee; border: 1px dashed #686a63; border-radius: 7px; background: #2d2f2b; transition: border-color .2s, transform .2s; }
+    .stage.dragging .empty-state { border-color: var(--lime); transform: scale(1.015); }
+    .empty-icon { width: 51px; height: 51px; margin: 0 auto 19px; display: grid; place-items: center; border-radius: 14px; color: var(--ink); background: var(--lime); font-size: 23px; }
+    .empty-state h1 { margin: 0 0 8px; font: 700 19px "Manrope", sans-serif; }
+    .empty-state p { margin: 0; color: #b5b7ae; font-size: 13px; line-height: 1.6; }
+    .upload-button { margin-top: 21px; padding: 0 17px; color: var(--ink); background: var(--lime); }
+    .upload-button:hover { background: #e4f58f; }
+    .stage-hint { position: absolute; bottom: 12px; left: 14px; color: #c4c6bd; font-size: 11px; }
+    .bottom-bar { min-height: 48px; display: flex; align-items: end; justify-content: space-between; color: var(--muted); font-size: 11px; }
+    .presets { display: flex; align-items: center; gap: 8px; overflow: auto; padding: 5px 0; }
+    .presets-label { flex: 0 0 auto; margin-right: 3px; color: var(--ink); font-size: 11px; font-weight: 700; }
+    .preset { flex: 0 0 auto; padding: 6px 10px; border: 1px solid var(--line); border-radius: 4px; background: var(--panel); color: #565850; cursor: pointer; font-size: 11px; }
+    .preset:hover, .preset.active { border-color: var(--accent); color: var(--accent-dark); }
+    .sidebar { min-width: 0; padding: 21px 20px 28px; border-left: 1px solid var(--line); background: var(--panel); }
+    .panel-title { display: flex; align-items: center; justify-content: space-between; margin-bottom: 17px; }
+    .panel-title h2 { margin: 0; font: 700 16px "Manrope", sans-serif; }
+    .panel-title button { padding: 5px 0; border: 0; background: transparent; color: var(--accent-dark); cursor: pointer; font-size: 11px; font-weight: 600; }
+    .control-group { padding: 15px 0 10px; border-top: 1px solid var(--line); }
+    .group-heading { margin: 0 0 11px; display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; }
+    .group-index { width: 20px; height: 20px; display: grid; place-items: center; border-radius: 5px; background: var(--paper); color: var(--accent-dark); font-size: 10px; }
+    .slider-row { margin-bottom: 11px; }
+    .slider-label { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 4px; color: #454740; font-size: 11px; }
+    .slider-value { min-width: 35px; text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
+    input[type="range"] { width: 100%; height: 15px; display: block; margin: 0; appearance: none; background: transparent; cursor: pointer; }
+    input[type="range"]::-webkit-slider-runnable-track { height: 3px; border-radius: 9px; background: linear-gradient(to right, var(--accent), #edc9bc); }
+    input[type="range"]::-moz-range-track { height: 3px; border-radius: 9px; background: linear-gradient(to right, var(--accent), #edc9bc); }
+    input[type="range"]::-webkit-slider-thumb { width: 13px; height: 13px; margin-top: -5px; appearance: none; border: 2px solid white; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+    input[type="range"]::-moz-range-thumb { width: 10px; height: 10px; border: 2px solid white; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+    .notice { margin-top: 17px; padding: 11px 12px; border-left: 2px solid var(--lime); background: #f8f8ef; color: #6b6c62; font-size: 10px; line-height: 1.55; }
+    .mobile-save { display: none; }
+    #fileInput { display: none; }
+    @media (min-width: 1200px) { .workspace { grid-template-columns: minmax(0, 1fr) 370px; } .main { padding: 26px 32px 26px; } }
+    @media (max-width: 760px) {
+      .topbar { height: 58px; padding: 0 14px; }
+      .brand { gap: 8px; font-size: 13px; }
+      .top-actions { gap: 3px; }
+      .top-actions .quiet-button { display: none; }
+      .save-button { min-height: 35px; padding: 0 12px; font-size: 12px; }
+      .workspace { min-height: calc(100vh - 58px); grid-template-columns: 1fr; }
+      .main { min-height: 55vh; padding: 15px 13px 12px; }
+      .toolbar { margin-bottom: 10px; }
+      .file-info { gap: 6px; }
+      .file-meta { font-size: 10px; }
+      .icon-button { min-height: 31px; padding: 0 7px; font-size: 10px; }
+      .stage { min-height: 300px; }
+      .bottom-bar { min-height: 43px; }
+      .presets { gap: 6px; }
+      .preset { padding: 6px 8px; }
+      .sidebar { padding: 18px 17px 24px; border-top: 1px solid var(--line); border-left: 0; }
+      .control-group { padding-top: 14px; }
+      .slider-row { margin-bottom: 12px; }
+      .mobile-save { display: block; width: 100%; margin-top: 16px; min-height: 43px; }
+    }
+    @media (max-width: 390px) { .brand span:last-child { display: none; } .file-meta { display: none; } .main { min-height: 52vh; } .stage { min-height: 260px; } }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="brand-mark">◒</span><span>JPEG</span><span>/ LAB</span></div>
+    <div class="top-actions">
+      <button class="quiet-button" id="openTop" type="button">Открыть фото</button>
+      <button class="quiet-button" id="resetTop" type="button">Сбросить</button>
+      <button class="save-button" id="saveTop" type="button">Скачать JPEG ↓</button>
+    </div>
+  </header>
+
+  <input id="fileInput" type="file" accept="image/jpeg,.jpg,.jpeg">
+
+  <main class="workspace">
+    <section class="main" aria-label="Предпросмотр фотографии">
+      <div class="toolbar">
+        <div class="file-info"><span class="file-dot"></span><span class="file-name" id="fileName">Файл не выбран</span><span class="file-meta" id="fileMeta">JPEG · откройте фотографию</span></div>
+        <div class="toolbar-actions">
+          <button class="icon-button" id="compareButton" type="button" title="Удерживайте, чтобы посмотреть оригинал" disabled>До / После</button>
+          <button class="icon-button" id="rotateButton" type="button" title="Повернуть на 90°" disabled>↻ Повернуть</button>
+        </div>
+      </div>
+      <div class="stage" id="stage">
+        <canvas id="preview" aria-label="Обработанная фотография"></canvas>
+        <div class="empty-state" id="emptyState">
+          <div class="empty-icon">＋</div>
+          <h1>Добавьте фотографию</h1>
+          <p>Перетащите JPEG сюда или выберите его на устройстве</p>
+          <button class="upload-button" id="openButton" type="button">Выбрать JPEG</button>
+        </div>
+        <div class="stage-hint" id="stageHint" hidden>JPEG / LAB · обработка на вашем устройстве</div>
+      </div>
+      <div class="bottom-bar">
+        <div class="presets" aria-label="Готовые стили">
+          <span class="presets-label">СТИЛЬ</span>
+          <button class="preset active" data-preset="original" type="button">Оригинал</button>
+          <button class="preset" data-preset="warm" type="button">Тёплый</button>
+          <button class="preset" data-preset="bright" type="button">Светлый</button>
+          <button class="preset" data-preset="film" type="button">Кино</button>
+          <button class="preset" data-preset="mono" type="button">Ч/Б</button>
+          <button class="preset" data-preset="vintage" type="button">Винтаж</button>
+          <button class="preset" data-preset="crisp" type="button">Чёткий</button>
+          <button class="preset" data-preset="soft" type="button">Мягкий</button>
+        </div>
+      </div>
+    </section>
+
+    <aside class="sidebar" aria-label="Настройки обработки">
+      <div class="panel-title"><h2>Настройки</h2><button id="resetButton" type="button">Сбросить всё</button></div>
+
+      <section class="control-group">
+        <h3 class="group-heading"><span class="group-index">01</span> Свет</h3>
+        <div class="slider-row"><label class="slider-label" for="exposure"><span>Экспозиция</span><output class="slider-value" data-output="exposure">0</output></label><input id="exposure" type="range" min="-100" max="100" value="0" data-key="exposure" aria-label="Экспозиция"></div>
+        <div class="slider-row"><label class="slider-label" for="brightness"><span>Яркость</span><output class="slider-value" data-output="brightness">0</output></label><input id="brightness" type="range" min="-100" max="100" value="0" data-key="brightness" aria-label="Яркость"></div>
+        <div class="slider-row"><label class="slider-label" for="contrast"><span>Контраст</span><output class="slider-value" data-output="contrast">0</output></label><input id="contrast" type="range" min="-100" max="100" value="0" data-key="contrast" aria-label="Контраст"></div>
+        <div class="slider-row"><label class="slider-label" for="highlights"><span>Света</span><output class="slider-value" data-output="highlights">0</output></label><input id="highlights" type="range" min="-100" max="100" value="0" data-key="highlights" aria-label="Света"></div>
+        <div class="slider-row"><label class="slider-label" for="shadows"><span>Тени</span><output class="slider-value" data-output="shadows">0</output></label><input id="shadows" type="range" min="-100" max="100" value="0" data-key="shadows" aria-label="Тени"></div>
+      </section>
+
+      <section class="control-group">
+        <h3 class="group-heading"><span class="group-index">02</span> Цвет</h3>
+        <div class="slider-row"><label class="slider-label" for="temperature"><span>Температура</span><output class="slider-value" data-output="temperature">0</output></label><input id="temperature" type="range" min="-100" max="100" value="0" data-key="temperature" aria-label="Температура"></div>
+        <div class="slider-row"><label class="slider-label" for="tint"><span>Оттенок</span><output class="slider-value" data-output="tint">0</output></label><input id="tint" type="range" min="-100" max="100" value="0" data-key="tint" aria-label="Оттенок"></div>
+        <div class="slider-row"><label class="slider-label" for="saturation"><span>Насыщенность</span><output class="slider-value" data-output="saturation">0</output></label><input id="saturation" type="range" min="-100" max="100" value="0" data-key="saturation" aria-label="Насыщенность"></div>
+        <div class="slider-row"><label class="slider-label" for="vibrance"><span>Сочность</span><output class="slider-value" data-output="vibrance">0</output></label><input id="vibrance" type="range" min="-100" max="100" value="0" data-key="vibrance" aria-label="Сочность"></div>
+        <div class="slider-row"><label class="slider-label" for="hue"><span>Сдвиг оттенка</span><output class="slider-value" data-output="hue">0°</output></label><input id="hue" type="range" min="-180" max="180" value="0" data-key="hue" aria-label="Сдвиг оттенка"></div>
+      </section>
+
+      <section class="control-group">
+        <h3 class="group-heading"><span class="group-index">03</span> Детали</h3>
+        <div class="slider-row"><label class="slider-label" for="sharpness"><span>Резкость</span><output class="slider-value" data-output="sharpness">0</output></label><input id="sharpness" type="range" min="0" max="100" value="0" data-key="sharpness" aria-label="Резкость"></div>
+        <div class="slider-row"><label class="slider-label" for="blur"><span>Размытие</span><output class="slider-value" data-output="blur">0</output></label><input id="blur" type="range" min="0" max="20" value="0" data-key="blur" aria-label="Размытие"></div>
+        <div class="slider-row"><label class="slider-label" for="grain"><span>Зерно</span><output class="slider-value" data-output="grain">0</output></label><input id="grain" type="range" min="0" max="50" value="0" data-key="grain" aria-label="Зерно"></div>
+      </section>
+
+      <section class="control-group">
+        <h3 class="group-heading"><span class="group-index">04</span> Эффекты</h3>
+        <div class="slider-row"><label class="slider-label" for="vignette"><span>Виньетка</span><output class="slider-value" data-output="vignette">0</output></label><input id="vignette" type="range" min="0" max="100" value="0" data-key="vignette" aria-label="Виньетка"></div>
+        <div class="slider-row"><label class="slider-label" for="fade"><span>Выцветание</span><output class="slider-value" data-output="fade">0</output></label><input id="fade" type="range" min="0" max="100" value="0" data-key="fade" aria-label="Выцветание"></div>
+        <div class="slider-row"><label class="slider-label" for="sepia"><span>Сепия</span><output class="slider-value" data-output="sepia">0</output></label><input id="sepia" type="range" min="0" max="100" value="0" data-key="sepia" aria-label="Сепия"></div>
+      </section>
+
+      <div class="notice">Исходное фото не меняется. Результат сохраняется в JPEG в полном разрешении.</div>
+      <button class="save-button mobile-save" id="saveMobile" type="button">Скачать JPEG ↓</button>
+    </aside>
+  </main>
+
+  <script>
+    (() => {
+      const keys = ["exposure", "brightness", "contrast", "highlights", "shadows", "temperature", "tint", "saturation", "vibrance", "hue", "sharpness", "blur", "grain", "vignette", "fade", "sepia"];
+      const defaults = Object.fromEntries(keys.map(key => [key, 0]));
+      const presets = {
+        original: {}, warm: { temperature: 28, tint: 5, saturation: 9, highlights: -12 },
+        bright: { exposure: 17, brightness: 9, shadows: 24, highlights: -16, saturation: 5 },
+        film: { contrast: 15, saturation: -19, shadows: 13, highlights: -22, fade: 17, temperature: 7, grain: 9 },
+        mono: { saturation: -100, contrast: 12, highlights: -8, shadows: 10 },
+        vintage: { temperature: 20, saturation: -25, fade: 28, sepia: 24, grain: 13, vignette: 18 },
+        crisp: { contrast: 18, saturation: 11, sharpness: 38, highlights: -12 },
+        soft: { contrast: -11, highlights: -18, shadows: 20, blur: 2, saturation: -5 }
+      };
+      const values = { ...defaults };
+      const input = document.querySelector("#fileInput");
+      const stage = document.querySelector("#stage");
+      const preview = document.querySelector("#preview");
+      const context = preview.getContext("2d", { willReadFrequently: true });
+      const emptyState = document.querySelector("#emptyState");
+      const originalCanvas = document.createElement("canvas");
+      const originalContext = originalCanvas.getContext("2d", { willReadFrequently: true });
+      let image = null;
+      let fileBaseName = "photo";
+      let rotation = 0;
+      let renderFrame = 0;
+
+      function openPicker() { input.click(); }
+      document.querySelectorAll("#openButton, #openTop").forEach(button => button.addEventListener("click", openPicker));
+
+      function formatBytes(bytes) {
+        return bytes < 1024 * 1024 ? `${Math.max(1, Math.round(bytes / 1024))} КБ` : `${(bytes / (1024 * 1024)).toFixed(1)} МБ`;
+      }
+
+      function loadFile(file) {
+        if (!file || !["image/jpeg", "image/jpg"].includes(file.type) && !/\.jpe?g$/i.test(file.name)) {
+          if (file) alert("Пожалуйста, выберите файл JPEG.");
+          return;
+        }
+        const nextImage = new Image();
+        const url = URL.createObjectURL(file);
+        nextImage.onload = () => {
+          if (image?.src?.startsWith("blob:")) URL.revokeObjectURL(image.src);
+          image = nextImage;
+          rotation = 0;
+          fileBaseName = file.name.replace(/\.jpe?g$/i, "") || "photo";
+          const sideways = rotation % 180 !== 0;
+          const width = sideways ? image.naturalHeight : image.naturalWidth;
+          const height = sideways ? image.naturalWidth : image.naturalHeight;
+          originalCanvas.width = width;
+          originalCanvas.height = height;
+          originalContext.drawImage(image, 0, 0, width, height);
+          document.querySelector("#fileName").textContent = file.name;
+          document.querySelector("#fileMeta").textContent = `${width} × ${height} · ${formatBytes(file.size)}`;
+          emptyState.hidden = true;
+          preview.style.display = "block";
+          document.querySelector("#stageHint").hidden = false;
+          document.querySelector("#compareButton").disabled = false;
+          document.querySelector("#rotateButton").disabled = false;
+          URL.revokeObjectURL(url);
+          requestRender();
+        };
+        nextImage.onerror = () => { URL.revokeObjectURL(url); alert("Не удалось открыть этот JPEG."); };
+        nextImage.src = url;
+      }
+
+      input.addEventListener("change", event => loadFile(event.target.files[0]));
+      ["dragenter", "dragover"].forEach(type => stage.addEventListener(type, event => { event.preventDefault(); stage.classList.add("dragging"); }));
+      ["dragleave", "drop"].forEach(type => stage.addEventListener(type, event => { event.preventDefault(); stage.classList.remove("dragging"); }));
+      stage.addEventListener("drop", event => loadFile(event.dataTransfer.files[0]));
+
+      function setValues(next) {
+        Object.assign(values, defaults, next);
+        for (const key of keys) {
+          const control = document.querySelector(`[data-key="${key}"]`);
+          control.value = values[key];
+          const suffix = key === "hue" ? "°" : "";
+          document.querySelector(`[data-output="${key}"]`).value = `${values[key] > 0 && key !== "hue" ? "+" : ""}${values[key]}${suffix}`;
+        }
+        document.querySelectorAll(".preset").forEach(button => button.classList.toggle("active", button.dataset.preset === (Object.entries(presets).find(([, preset]) => keys.every(key => (preset[key] || 0) === values[key]))?.[0] || "")));
+        requestRender();
+      }
+
+      document.querySelectorAll("[data-key]").forEach(control => control.addEventListener("input", () => {
+        values[control.dataset.key] = Number(control.value);
+        const suffix = control.dataset.key === "hue" ? "°" : "";
+        document.querySelector(`[data-output="${control.dataset.key}"]`).value = `${values[control.dataset.key] > 0 && control.dataset.key !== "hue" ? "+" : ""}${values[control.dataset.key]}${suffix}`;
+        document.querySelectorAll(".preset").forEach(button => button.classList.remove("active"));
+        requestRender();
+      }));
+
+      document.querySelectorAll(".preset").forEach(button => button.addEventListener("click", () => setValues(presets[button.dataset.preset])));
+      ["#resetTop", "#resetButton"].forEach(selector => document.querySelector(selector).addEventListener("click", () => setValues(defaults)));
+
+      function requestRender() {
+        if (!image || renderFrame) return;
+        renderFrame = requestAnimationFrame(() => {
+          renderFrame = 0;
+          renderPreview();
+        });
+      }
+
+      function renderPreview() {
+        const scale = Math.min(1, 1500 / originalCanvas.width, 1500 / originalCanvas.height);
+        preview.width = Math.max(1, Math.round(originalCanvas.width * scale));
+        preview.height = Math.max(1, Math.round(originalCanvas.height * scale));
+        // Paint a usable image first. This keeps the preview visible while a
+        // browser is calculating the more expensive pixel-level effects.
+        const previewContext = preview.getContext("2d", { willReadFrequently: true });
+        previewContext.clearRect(0, 0, preview.width, preview.height);
+        previewContext.drawImage(originalCanvas, 0, 0, preview.width, preview.height);
+        try {
+          applyAdjustments(originalCanvas, preview, values);
+        } catch (error) {
+          // A browser may reject a particular canvas operation; retain the
+          // original preview rather than leaving an empty gray stage.
+          console.warn("Не удалось применить эффект в предпросмотре", error);
+        }
+      }
+
+      function applyAdjustments(source, target, settings) {
+        const width = target.width;
+        const height = target.height;
+        const targetContext = target.getContext("2d", { willReadFrequently: true });
+        const exposure = Math.pow(2, settings.exposure / 100);
+        const brightness = 100 + settings.brightness + settings.shadows * .18 + settings.highlights * .1;
+        const contrast = 100 + settings.contrast + settings.sharpness * .18;
+        const saturation = Math.max(0, 100 + settings.saturation + settings.vibrance * .55);
+        const warmth = settings.temperature * .22 + settings.tint * .08;
+        const blur = settings.blur * .35;
+        targetContext.clearRect(0, 0, width, height);
+        targetContext.save();
+        targetContext.filter = `brightness(${Math.max(0, brightness * exposure)}%) contrast(${Math.max(0, contrast)}%) saturate(${saturation}%) hue-rotate(${settings.hue + warmth}deg) sepia(${settings.sepia}%) blur(${blur}px)`;
+        targetContext.drawImage(source, 0, 0, width, height);
+        targetContext.restore();
+
+        if (settings.fade > 0) {
+          targetContext.fillStyle = `rgba(244, 235, 215, ${settings.fade / 420})`;
+          targetContext.fillRect(0, 0, width, height);
+        }
+        if (settings.vignette > 0) {
+          const gradient = targetContext.createRadialGradient(width / 2, height / 2, Math.min(width, height) * .15, width / 2, height / 2, Math.max(width, height) * .72);
+          gradient.addColorStop(0, "rgba(0,0,0,0)");
+          gradient.addColorStop(1, `rgba(0,0,0,${settings.vignette / 145})`);
+          targetContext.fillStyle = gradient;
+          targetContext.fillRect(0, 0, width, height);
+        }
+        if (settings.grain > 0) {
+          targetContext.save();
+          targetContext.globalAlpha = settings.grain / 420;
+          for (let i = 0; i < width * height / 160; i++) {
+            targetContext.fillStyle = Math.random() > .5 ? "#fff" : "#000";
+            targetContext.fillRect(Math.random() * width, Math.random() * height, 1, 1);
+          }
+          targetContext.restore();
+        }
+      }
+
+      document.querySelector("#rotateButton").addEventListener("click", () => {
+        if (!image) return;
+        rotation = (rotation + 90) % 360;
+        const width = rotation % 180 ? originalCanvas.height : originalCanvas.width;
+        const height = rotation % 180 ? originalCanvas.width : originalCanvas.height;
+        const sourceCopy = document.createElement("canvas");
+        sourceCopy.width = originalCanvas.width;
+        sourceCopy.height = originalCanvas.height;
+        sourceCopy.getContext("2d").drawImage(originalCanvas, 0, 0);
+        originalCanvas.width = width;
+        originalCanvas.height = height;
+        originalContext.save();
+        originalContext.translate(width / 2, height / 2);
+        originalContext.rotate(Math.PI / 2);
+        originalContext.drawImage(sourceCopy, -sourceCopy.width / 2, -sourceCopy.height / 2);
+        originalContext.restore();
+        rotation = 0;
+        document.querySelector("#fileMeta").textContent = `${width} × ${height} · повёрнуто`;
+        requestRender();
+      });
+
+      const compare = document.querySelector("#compareButton");
+      const showOriginal = event => {
+        if (!image) return;
+        event.preventDefault();
+        preview.getContext("2d").drawImage(originalCanvas, 0, 0, preview.width, preview.height);
+        compare.textContent = "Оригинал";
+      };
+      const showEdited = () => { compare.textContent = "До / После"; requestRender(); };
+      compare.addEventListener("pointerdown", showOriginal);
+      ["pointerup", "pointerleave", "pointercancel"].forEach(type => compare.addEventListener(type, showEdited));
+      compare.addEventListener("keydown", event => { if (event.key === " ") showOriginal(event); });
+      compare.addEventListener("keyup", showEdited);
+
+      function saveJpeg() {
+        if (!image) { openPicker(); return; }
+        const output = document.createElement("canvas");
+        output.width = originalCanvas.width;
+        output.height = originalCanvas.height;
+        applyAdjustments(originalCanvas, output, values);
+        output.toBlob(blob => {
+          if (!blob) { alert("Не удалось сохранить изображение."); return; }
+          const link = document.createElement("a");
+          link.href = URL.createObjectURL(blob);
+          link.download = `${fileBaseName}-edited.jpg`;
+          link.click();
+          setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+        }, "image/jpeg", .94);
+      }
+      ["#saveTop", "#saveMobile"].forEach(selector => document.querySelector(selector).addEventListener("click", saveJpeg));
+    })();
+  </script>
+</body>
+</html>
