@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="ru">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f6f5f0">
-  <title>JPEG / LAB — фоторедактор</title>
+  <title>JPEG / LAB — Photo Editor</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -114,85 +114,85 @@
   <header class="topbar">
     <div class="brand"><span class="brand-mark">◒</span><span>JPEG</span><span>/ LAB</span></div>
     <div class="top-actions">
-      <button class="quiet-button" id="openTop" type="button">Открыть фото</button>
-      <button class="quiet-button" id="resetTop" type="button">Сбросить</button>
-      <button class="save-button" id="saveTop" type="button">Скачать JPEG ↓</button>
+      <button class="quiet-button" id="openTop" type="button">Open Photo</button>
+      <button class="quiet-button" id="resetTop" type="button">Reset</button>
+      <button class="save-button" id="saveTop" type="button">Download JPEG ↓</button>
     </div>
   </header>
 
   <input id="fileInput" type="file" accept="image/jpeg,.jpg,.jpeg">
 
   <main class="workspace">
-    <section class="main" aria-label="Предпросмотр фотографии">
+    <section class="main" aria-label="Photo preview">
       <div class="toolbar">
-        <div class="file-info"><span class="file-dot"></span><span class="file-name" id="fileName">Файл не выбран</span><span class="file-meta" id="fileMeta">JPEG · откройте фотографию</span></div>
+        <div class="file-info"><span class="file-dot"></span><span class="file-name" id="fileName">No file selected</span><span class="file-meta" id="fileMeta">JPEG · open a photo</span></div>
         <div class="toolbar-actions">
-          <button class="icon-button" id="compareButton" type="button" title="Удерживайте, чтобы посмотреть оригинал" disabled>До / После</button>
-          <button class="icon-button" id="rotateButton" type="button" title="Повернуть на 90°" disabled>↻ Повернуть</button>
+          <button class="icon-button" id="compareButton" type="button" title="Hold to view the original" disabled>Before / After</button>
+          <button class="icon-button" id="rotateButton" type="button" title="Rotate 90°" disabled>↻ Rotate</button>
         </div>
       </div>
       <div class="stage" id="stage">
-        <canvas id="preview" aria-label="Обработанная фотография"></canvas>
+        <canvas id="preview" aria-label="Edited photo"></canvas>
         <div class="empty-state" id="emptyState">
           <div class="empty-icon">＋</div>
-          <h1>Добавьте фотографию</h1>
-          <p>Перетащите JPEG сюда или выберите его на устройстве</p>
-          <button class="upload-button" id="openButton" type="button">Выбрать JPEG</button>
+          <h1>Add a photo</h1>
+          <p>Drop a JPEG here or choose one from your device</p>
+          <button class="upload-button" id="openButton" type="button">Choose JPEG</button>
         </div>
-        <div class="stage-hint" id="stageHint" hidden>JPEG / LAB · обработка на вашем устройстве</div>
+        <div class="stage-hint" id="stageHint" hidden>JPEG / LAB · processed on your device</div>
       </div>
       <div class="bottom-bar">
-        <div class="presets" aria-label="Готовые стили">
-          <span class="presets-label">СТИЛЬ</span>
-          <button class="preset active" data-preset="original" type="button">Оригинал</button>
-          <button class="preset" data-preset="warm" type="button">Тёплый</button>
-          <button class="preset" data-preset="bright" type="button">Светлый</button>
-          <button class="preset" data-preset="film" type="button">Кино</button>
-          <button class="preset" data-preset="mono" type="button">Ч/Б</button>
-          <button class="preset" data-preset="vintage" type="button">Винтаж</button>
-          <button class="preset" data-preset="crisp" type="button">Чёткий</button>
-          <button class="preset" data-preset="soft" type="button">Мягкий</button>
+        <div class="presets" aria-label="Ready-made styles">
+          <span class="presets-label">STYLE</span>
+          <button class="preset active" data-preset="original" type="button">Original</button>
+          <button class="preset" data-preset="warm" type="button">Warm</button>
+          <button class="preset" data-preset="bright" type="button">Bright</button>
+          <button class="preset" data-preset="film" type="button">Film</button>
+          <button class="preset" data-preset="mono" type="button">B&amp;W</button>
+          <button class="preset" data-preset="vintage" type="button">Vintage</button>
+          <button class="preset" data-preset="crisp" type="button">Crisp</button>
+          <button class="preset" data-preset="soft" type="button">Soft</button>
         </div>
       </div>
     </section>
 
-    <aside class="sidebar" aria-label="Настройки обработки">
-      <div class="panel-title"><h2>Настройки</h2><button id="resetButton" type="button">Сбросить всё</button></div>
+    <aside class="sidebar" aria-label="Editing controls">
+      <div class="panel-title"><h2>Adjustments</h2><button id="resetButton" type="button">Reset all</button></div>
 
       <section class="control-group">
-        <h3 class="group-heading"><span class="group-index">01</span> Свет</h3>
-        <div class="slider-row"><label class="slider-label" for="exposure"><span>Экспозиция</span><output class="slider-value" data-output="exposure">0</output></label><input id="exposure" type="range" min="-100" max="100" value="0" data-key="exposure" aria-label="Экспозиция"></div>
-        <div class="slider-row"><label class="slider-label" for="brightness"><span>Яркость</span><output class="slider-value" data-output="brightness">0</output></label><input id="brightness" type="range" min="-100" max="100" value="0" data-key="brightness" aria-label="Яркость"></div>
-        <div class="slider-row"><label class="slider-label" for="contrast"><span>Контраст</span><output class="slider-value" data-output="contrast">0</output></label><input id="contrast" type="range" min="-100" max="100" value="0" data-key="contrast" aria-label="Контраст"></div>
-        <div class="slider-row"><label class="slider-label" for="highlights"><span>Света</span><output class="slider-value" data-output="highlights">0</output></label><input id="highlights" type="range" min="-100" max="100" value="0" data-key="highlights" aria-label="Света"></div>
-        <div class="slider-row"><label class="slider-label" for="shadows"><span>Тени</span><output class="slider-value" data-output="shadows">0</output></label><input id="shadows" type="range" min="-100" max="100" value="0" data-key="shadows" aria-label="Тени"></div>
+        <h3 class="group-heading"><span class="group-index">01</span> Light</h3>
+        <div class="slider-row"><label class="slider-label" for="exposure"><span>Exposure</span><output class="slider-value" data-output="exposure">0</output></label><input id="exposure" type="range" min="-100" max="100" value="0" data-key="exposure" aria-label="Exposure"></div>
+        <div class="slider-row"><label class="slider-label" for="brightness"><span>Brightness</span><output class="slider-value" data-output="brightness">0</output></label><input id="brightness" type="range" min="-100" max="100" value="0" data-key="brightness" aria-label="Brightness"></div>
+        <div class="slider-row"><label class="slider-label" for="contrast"><span>Contrast</span><output class="slider-value" data-output="contrast">0</output></label><input id="contrast" type="range" min="-100" max="100" value="0" data-key="contrast" aria-label="Contrast"></div>
+        <div class="slider-row"><label class="slider-label" for="highlights"><span>Highlights</span><output class="slider-value" data-output="highlights">0</output></label><input id="highlights" type="range" min="-100" max="100" value="0" data-key="highlights" aria-label="Highlights"></div>
+        <div class="slider-row"><label class="slider-label" for="shadows"><span>Shadows</span><output class="slider-value" data-output="shadows">0</output></label><input id="shadows" type="range" min="-100" max="100" value="0" data-key="shadows" aria-label="Shadows"></div>
       </section>
 
       <section class="control-group">
-        <h3 class="group-heading"><span class="group-index">02</span> Цвет</h3>
-        <div class="slider-row"><label class="slider-label" for="temperature"><span>Температура</span><output class="slider-value" data-output="temperature">0</output></label><input id="temperature" type="range" min="-100" max="100" value="0" data-key="temperature" aria-label="Температура"></div>
-        <div class="slider-row"><label class="slider-label" for="tint"><span>Оттенок</span><output class="slider-value" data-output="tint">0</output></label><input id="tint" type="range" min="-100" max="100" value="0" data-key="tint" aria-label="Оттенок"></div>
-        <div class="slider-row"><label class="slider-label" for="saturation"><span>Насыщенность</span><output class="slider-value" data-output="saturation">0</output></label><input id="saturation" type="range" min="-100" max="100" value="0" data-key="saturation" aria-label="Насыщенность"></div>
-        <div class="slider-row"><label class="slider-label" for="vibrance"><span>Сочность</span><output class="slider-value" data-output="vibrance">0</output></label><input id="vibrance" type="range" min="-100" max="100" value="0" data-key="vibrance" aria-label="Сочность"></div>
-        <div class="slider-row"><label class="slider-label" for="hue"><span>Сдвиг оттенка</span><output class="slider-value" data-output="hue">0°</output></label><input id="hue" type="range" min="-180" max="180" value="0" data-key="hue" aria-label="Сдвиг оттенка"></div>
+        <h3 class="group-heading"><span class="group-index">02</span> Color</h3>
+        <div class="slider-row"><label class="slider-label" for="temperature"><span>Temperature</span><output class="slider-value" data-output="temperature">0</output></label><input id="temperature" type="range" min="-100" max="100" value="0" data-key="temperature" aria-label="Temperature"></div>
+        <div class="slider-row"><label class="slider-label" for="tint"><span>Tint</span><output class="slider-value" data-output="tint">0</output></label><input id="tint" type="range" min="-100" max="100" value="0" data-key="tint" aria-label="Tint"></div>
+        <div class="slider-row"><label class="slider-label" for="saturation"><span>Saturation</span><output class="slider-value" data-output="saturation">0</output></label><input id="saturation" type="range" min="-100" max="100" value="0" data-key="saturation" aria-label="Saturation"></div>
+        <div class="slider-row"><label class="slider-label" for="vibrance"><span>Vibrance</span><output class="slider-value" data-output="vibrance">0</output></label><input id="vibrance" type="range" min="-100" max="100" value="0" data-key="vibrance" aria-label="Vibrance"></div>
+        <div class="slider-row"><label class="slider-label" for="hue"><span>Hue shift</span><output class="slider-value" data-output="hue">0°</output></label><input id="hue" type="range" min="-180" max="180" value="0" data-key="hue" aria-label="Hue shift"></div>
       </section>
 
       <section class="control-group">
-        <h3 class="group-heading"><span class="group-index">03</span> Детали</h3>
-        <div class="slider-row"><label class="slider-label" for="sharpness"><span>Резкость</span><output class="slider-value" data-output="sharpness">0</output></label><input id="sharpness" type="range" min="0" max="100" value="0" data-key="sharpness" aria-label="Резкость"></div>
-        <div class="slider-row"><label class="slider-label" for="blur"><span>Размытие</span><output class="slider-value" data-output="blur">0</output></label><input id="blur" type="range" min="0" max="20" value="0" data-key="blur" aria-label="Размытие"></div>
-        <div class="slider-row"><label class="slider-label" for="grain"><span>Зерно</span><output class="slider-value" data-output="grain">0</output></label><input id="grain" type="range" min="0" max="50" value="0" data-key="grain" aria-label="Зерно"></div>
+        <h3 class="group-heading"><span class="group-index">03</span> Detail</h3>
+        <div class="slider-row"><label class="slider-label" for="sharpness"><span>Sharpness</span><output class="slider-value" data-output="sharpness">0</output></label><input id="sharpness" type="range" min="0" max="100" value="0" data-key="sharpness" aria-label="Sharpness"></div>
+        <div class="slider-row"><label class="slider-label" for="blur"><span>Blur</span><output class="slider-value" data-output="blur">0</output></label><input id="blur" type="range" min="0" max="20" value="0" data-key="blur" aria-label="Blur"></div>
+        <div class="slider-row"><label class="slider-label" for="grain"><span>Grain</span><output class="slider-value" data-output="grain">0</output></label><input id="grain" type="range" min="0" max="50" value="0" data-key="grain" aria-label="Grain"></div>
       </section>
 
       <section class="control-group">
-        <h3 class="group-heading"><span class="group-index">04</span> Эффекты</h3>
-        <div class="slider-row"><label class="slider-label" for="vignette"><span>Виньетка</span><output class="slider-value" data-output="vignette">0</output></label><input id="vignette" type="range" min="0" max="100" value="0" data-key="vignette" aria-label="Виньетка"></div>
-        <div class="slider-row"><label class="slider-label" for="fade"><span>Выцветание</span><output class="slider-value" data-output="fade">0</output></label><input id="fade" type="range" min="0" max="100" value="0" data-key="fade" aria-label="Выцветание"></div>
-        <div class="slider-row"><label class="slider-label" for="sepia"><span>Сепия</span><output class="slider-value" data-output="sepia">0</output></label><input id="sepia" type="range" min="0" max="100" value="0" data-key="sepia" aria-label="Сепия"></div>
+        <h3 class="group-heading"><span class="group-index">04</span> Effects</h3>
+        <div class="slider-row"><label class="slider-label" for="vignette"><span>Vignette</span><output class="slider-value" data-output="vignette">0</output></label><input id="vignette" type="range" min="0" max="100" value="0" data-key="vignette" aria-label="Vignette"></div>
+        <div class="slider-row"><label class="slider-label" for="fade"><span>Fade</span><output class="slider-value" data-output="fade">0</output></label><input id="fade" type="range" min="0" max="100" value="0" data-key="fade" aria-label="Fade"></div>
+        <div class="slider-row"><label class="slider-label" for="sepia"><span>Sepia</span><output class="slider-value" data-output="sepia">0</output></label><input id="sepia" type="range" min="0" max="100" value="0" data-key="sepia" aria-label="Sepia"></div>
       </section>
 
-      <div class="notice">Исходное фото не меняется. Результат сохраняется в JPEG в полном разрешении.</div>
-      <button class="save-button mobile-save" id="saveMobile" type="button">Скачать JPEG ↓</button>
+      <div class="notice">Your original photo stays unchanged. The result is saved as a full-resolution JPEG.</div>
+      <button class="save-button mobile-save" id="saveMobile" type="button">Download JPEG ↓</button>
     </aside>
   </main>
 
@@ -226,12 +226,12 @@
       document.querySelectorAll("#openButton, #openTop").forEach(button => button.addEventListener("click", openPicker));
 
       function formatBytes(bytes) {
-        return bytes < 1024 * 1024 ? `${Math.max(1, Math.round(bytes / 1024))} КБ` : `${(bytes / (1024 * 1024)).toFixed(1)} МБ`;
+        return bytes < 1024 * 1024 ? `${Math.max(1, Math.round(bytes / 1024))} KB` : `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
       }
 
       function loadFile(file) {
         if (!file || !["image/jpeg", "image/jpg"].includes(file.type) && !/\.jpe?g$/i.test(file.name)) {
-          if (file) alert("Пожалуйста, выберите файл JPEG.");
+          if (file) alert("Please choose a JPEG file.");
           return;
         }
         const nextImage = new Image();
@@ -257,7 +257,7 @@
           URL.revokeObjectURL(url);
           requestRender();
         };
-        nextImage.onerror = () => { URL.revokeObjectURL(url); alert("Не удалось открыть этот JPEG."); };
+        nextImage.onerror = () => { URL.revokeObjectURL(url); alert("This JPEG could not be opened."); };
         nextImage.src = url;
       }
 
@@ -311,7 +311,7 @@
         } catch (error) {
           // A browser may reject a particular canvas operation; retain the
           // original preview rather than leaving an empty gray stage.
-          console.warn("Не удалось применить эффект в предпросмотре", error);
+          console.warn("The preview effect could not be applied", error);
         }
       }
 
@@ -370,7 +370,7 @@
         originalContext.drawImage(sourceCopy, -sourceCopy.width / 2, -sourceCopy.height / 2);
         originalContext.restore();
         rotation = 0;
-        document.querySelector("#fileMeta").textContent = `${width} × ${height} · повёрнуто`;
+        document.querySelector("#fileMeta").textContent = `${width} × ${height} · rotated`;
         requestRender();
       });
 
@@ -379,9 +379,9 @@
         if (!image) return;
         event.preventDefault();
         preview.getContext("2d").drawImage(originalCanvas, 0, 0, preview.width, preview.height);
-        compare.textContent = "Оригинал";
+        compare.textContent = "Original";
       };
-      const showEdited = () => { compare.textContent = "До / После"; requestRender(); };
+      const showEdited = () => { compare.textContent = "Before / After"; requestRender(); };
       compare.addEventListener("pointerdown", showOriginal);
       ["pointerup", "pointerleave", "pointercancel"].forEach(type => compare.addEventListener(type, showEdited));
       compare.addEventListener("keydown", event => { if (event.key === " ") showOriginal(event); });
@@ -394,7 +394,7 @@
         output.height = originalCanvas.height;
         applyAdjustments(originalCanvas, output, values);
         output.toBlob(blob => {
-          if (!blob) { alert("Не удалось сохранить изображение."); return; }
+          if (!blob) { alert("The image could not be saved."); return; }
           const link = document.createElement("a");
           link.href = URL.createObjectURL(blob);
           link.download = `${fileBaseName}-edited.jpg`;
